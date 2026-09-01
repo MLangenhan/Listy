@@ -15,7 +15,6 @@ struct ShoppingListView: View {
 
     @State private var showMarketPicker = false
     @State private var showSortingEditor = false
-    @State private var showAddItem = false
     @State private var newName = ""
     @State private var newQty = 1
     @State private var newUnit = "Stk"
@@ -23,11 +22,20 @@ struct ShoppingListView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                if vm.list.items.isEmpty {
-                    emptyState
-                } else {
-                    itemList
+            VStack(spacing: 0) {
+                if sortingVM.hasMarket && !vm.list.items.isEmpty {
+                    CategoryProgressBar(categories: sortingVM.profile.categories, allItems: vm.list.items)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 12)
+                        .padding(.bottom, 4)
+                }
+
+                Group {
+                    if vm.list.items.isEmpty {
+                        emptyState
+                    } else {
+                        itemList
+                    }
                 }
             }
             .navigationTitle("Einkaufsliste")
@@ -42,10 +50,10 @@ struct ShoppingListView: View {
                 SortingEditorView(sortingVM: sortingVM, listVM: vm, marketVM: marketVM)
             }
             .onChange(of: vm.list.items.count) { _, _ in
-                guard sortingVM.hasMarket && !sortingVM.isCustom else { return }
+                guard sortingVM.hasMarket else { return }
                 Task { @MainActor in
                     try? await Task.sleep(nanoseconds: 1)
-                    sortingVM.autoSort(items: vm.list.items)
+                    sortingVM.autoSortNewItems(items: vm.list.items)
                 }
             }
         }
@@ -56,7 +64,6 @@ struct ShoppingListView: View {
     private var itemList: some View {
         List {
             if sortingVM.hasMarket {
-                // Sortierte Ansicht mit Kategorien
                 ForEach(sortingVM.profile.categories) { category in
                     let catItems = sortingVM.items(in: category, allItems: vm.list.items)
                     let unchecked = catItems.filter { !$0.isChecked }
@@ -64,66 +71,76 @@ struct ShoppingListView: View {
 
                     if !unchecked.isEmpty || !checked.isEmpty {
                         Section {
-                            ForEach(unchecked) { item in itemRow(item) }
-                            ForEach(checked)   { item in itemRow(item) }
+                            ForEach(unchecked) { item in itemRow(item, accent: category.color) }
+                            ForEach(checked)   { item in itemRow(item, accent: category.color) }
                         } header: {
-                            HStack(spacing: 6) {
-                                Image(systemName: category.icon)
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundStyle(Theme.primary)
-                                Text(category.name.uppercased())
-                                    .font(.system(size: 11, weight: .bold, design: .rounded))
-                                    .foregroundStyle(Theme.sublabel)
-                            }
+                            categoryHeader(name: category.name, color: category.color)
                         }
                     }
                 }
 
-                // Unsortierte Items
                 let unsorted = sortingVM.unsortedItems(allItems: vm.list.items)
                 if !unsorted.isEmpty {
                     Section {
-                        ForEach(unsorted) { item in itemRow(item) }
+                        ForEach(unsorted) { item in itemRow(item, accent: Theme.tertiary) }
                     } header: {
-                        Text("SONSTIGES")
-                            .font(.system(size: 11, weight: .bold, design: .rounded))
-                            .foregroundStyle(Theme.sublabel)
+                        categoryHeader(name: "Noch nicht zugeordnet", color: Theme.tertiary)
                     }
                 }
 
             } else {
-                // Keine Sortierung: einfache Liste
                 Section {
-                    ForEach(vm.list.uncheckedItems) { item in itemRow(item) }
+                    ForEach(vm.list.uncheckedItems) { item in itemRow(item, accent: Theme.accent) }
                 } header: { sectionHeader("Offen", count: vm.list.uncheckedItems.count) }
 
                 if !vm.list.checkedItems.isEmpty {
                     Section {
-                        ForEach(vm.list.checkedItems) { item in itemRow(item) }
+                        ForEach(vm.list.checkedItems) { item in itemRow(item, accent: Theme.accent) }
                     } header: { sectionHeader("Erledigt", count: vm.list.checkedItems.count) }
                 }
             }
         }
         .listStyle(.plain)
+        .listRowSeparatorTint(Theme.divider)
     }
 
+    /// Kleiner Farbpunkt statt Icon — dezenter, funktioniert für jede
+    /// Kategorie ohne dass wir ein passendes SF Symbol pflegen müssen.
+    private func categoryHeader(name: String, color: Color) -> some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(color)
+                .frame(width: 6, height: 6)
+            Text(name.uppercased())
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .tracking(0.6)
+                .foregroundStyle(Theme.sublabel)
+        }
+        .padding(.vertical, 2)
+    }
+
+    // NOTE: Die eigentliche Zeilen-Optik (Checkbox, Mengen-Stepper, Löschen)
+    // steckt in ShoppingItemRow — die kenne ich noch nicht im Detail, daher
+    // hier bewusst nur der Aufruf mit einem neuen `accent`-Parameter für den
+    // schmalen farbigen Strich links. Schick mir ShoppingItemRow.swift, dann
+    // baue ich den Parameter dort sauber ein statt zu raten.
     @ViewBuilder
-    private func itemRow(_ item: Item) -> some View {
+    private func itemRow(_ item: Item, accent: Color) -> some View {
         ShoppingItemRow(
             item: item,
+            accent: accent,
             onToggle:         { vm.toggle(item) },
             onQuantityChange: { vm.updateQuantity(of: item, to: $0) },
             onDelete:         { vm.delete(item) }
         )
-        .listRowInsets(EdgeInsets())
-        .listRowSeparator(.hidden)
+        .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
     }
-    
+
     private var emptyState: some View {
         VStack(spacing: 16) {
             Image(systemName: "cart")
-                .font(.system(size: 52, weight: .thin))
-                .foregroundStyle(Theme.primary.opacity(0.4))
+                .font(.system(size: 44, weight: .thin))
+                .foregroundStyle(Theme.accent.opacity(0.35))
             Text("Noch nichts drin")
                 .font(.system(size: 20, weight: .semibold, design: .rounded))
                 .foregroundStyle(Theme.label)
@@ -139,21 +156,19 @@ struct ShoppingListView: View {
     private var toolbar: some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
             HStack(spacing: 4) {
-                // Sortierungs-Editor (nur wenn Markt gewählt)
                 if sortingVM.hasMarket {
                     Button {
                         showSortingEditor = true
                     } label: {
                         Image(systemName: sortingVM.isCustom ? "arrow.up.arrow.down.circle.fill" : "arrow.up.arrow.down.circle")
-                            .foregroundStyle(Theme.primary)
+                            .foregroundStyle(Theme.accent)
                     }
                 }
-                // Markt-Picker
                 Button {
                     showMarketPicker = true
                 } label: {
                     Image(systemName: "storefront")
-                        .foregroundStyle(Theme.primary)
+                        .foregroundStyle(Theme.accent)
                 }
 
                 if !vm.list.checkedItems.isEmpty {
@@ -168,17 +183,15 @@ struct ShoppingListView: View {
         }
     }
 
-    // Bottom-Bar: neues Item
     private var addItemBar: some View {
         VStack(spacing: 0) {
-            Divider()
+            Rectangle().fill(Theme.divider).frame(height: Theme.hairline)
             HStack(spacing: 10) {
                 TextField("Artikel hinzufügen", text: $newName)
                     .font(.system(size: 15, design: .rounded))
                     .padding(10)
-                    .background(Theme.surface, in: RoundedRectangle(cornerRadius: 10))
+                    .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
 
-                // Qty
                 QuantityStepper(quantity: $newQty)
                     .frame(width: 110)
 
@@ -186,17 +199,17 @@ struct ShoppingListView: View {
                     ForEach(units, id: \.self) { Text($0) }
                 }
                 .pickerStyle(.menu)
-                .tint(Theme.primary)
+                .tint(Theme.accent)
                 .padding(.horizontal, 4)
                 .frame(width: 74)
-                .background(Theme.surface, in: RoundedRectangle(cornerRadius: 10))
+                .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
 
                 Button(action: addManualItem) {
                     Image(systemName: "plus")
                         .font(.system(size: 16, weight: .bold))
                         .frame(width: 36, height: 36)
-                        .background(newName.isEmpty ? Theme.surface : Theme.primary,
-                                    in: RoundedRectangle(cornerRadius: 10))
+                        .background(newName.isEmpty ? Theme.surface : Theme.accent,
+                                    in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                         .foregroundStyle(newName.isEmpty ? Theme.sublabel : .white)
                 }
                 .buttonStyle(.plain)
@@ -209,19 +222,19 @@ struct ShoppingListView: View {
     }
 
     private func sectionHeader(_ title: String, count: Int) -> some View {
-        HStack {
+        HStack(spacing: 8) {
             Text(title.uppercased())
-                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .tracking(0.6)
                 .foregroundStyle(Theme.sublabel)
             Text("\(count)")
-                .font(.system(size: 11, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundStyle(Theme.sublabel)
                 .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(Theme.primary, in: Capsule())
+                .padding(.vertical, 1)
+                .background(Theme.surface, in: Capsule())
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
     }
 
     private func addManualItem() {

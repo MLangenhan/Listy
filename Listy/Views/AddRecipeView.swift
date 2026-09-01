@@ -15,7 +15,6 @@ struct AddRecipeView: View {
     @State private var servings: Int = 2
     @State private var ingredients: [Item] = []
 
-    // Eingabe für neue Zutat
     @State private var ingName: String = ""
     @State private var ingQty: Int = 1
     @State private var ingUnit: String = "Stk"
@@ -27,7 +26,6 @@ struct AddRecipeView: View {
             ScrollView {
                 VStack(spacing: 24) {
 
-                    // Rezeptname
                     VStack(alignment: .leading, spacing: 8) {
                         Label("Rezeptname", systemImage: "fork.knife")
                             .font(.system(size: 13, weight: .semibold, design: .rounded))
@@ -36,10 +34,9 @@ struct AddRecipeView: View {
                         TextField("z.B. Pasta Bolognese", text: $name)
                             .font(.system(size: 17, weight: .medium, design: .rounded))
                             .padding(14)
-                            .background(Theme.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous))
                     }
 
-                    // Portionen
                     VStack(alignment: .leading, spacing: 8) {
                         Label("Portionen", systemImage: "person.2")
                             .font(.system(size: 13, weight: .semibold, design: .rounded))
@@ -50,7 +47,7 @@ struct AddRecipeView: View {
                                 Image(systemName: "minus")
                                     .frame(width: 36, height: 36)
                                     .background(Theme.surface, in: Circle())
-                                    .foregroundStyle(Theme.primary)
+                                    .foregroundStyle(Theme.accent)
                             }
                             .buttonStyle(.plain)
 
@@ -62,40 +59,36 @@ struct AddRecipeView: View {
                             Button { servings += 1 } label: {
                                 Image(systemName: "plus")
                                     .frame(width: 36, height: 36)
-                                    .background(Theme.primary, in: Circle())
+                                    .background(Theme.accent, in: Circle())
                                     .foregroundStyle(.white)
                             }
                             .buttonStyle(.plain)
                         }
                     }
 
-                    // Zutaten
                     VStack(alignment: .leading, spacing: 12) {
                         Label("Zutaten", systemImage: "list.bullet")
                             .font(.system(size: 13, weight: .semibold, design: .rounded))
                             .foregroundStyle(Theme.sublabel)
 
-                        // Neue Zutat eingeben
                         VStack(spacing: 10) {
                             TextField("Zutatname", text: $ingName)
                                 .font(.system(size: 15, design: .rounded))
                                 .padding(12)
-                                .background(Theme.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous))
 
                             HStack(spacing: 10) {
-                                // Menge
                                 QuantityStepper(quantity: $ingQty)
                                     .frame(width: 110)
 
-                                // Einheit
                                 Picker("Einheit", selection: $ingUnit) {
                                     ForEach(units, id: \.self) { Text($0) }
                                 }
                                 .pickerStyle(.menu)
-                                .tint(Theme.primary)
+                                .tint(Theme.accent)
                                 .padding(.horizontal, 10)
                                 .frame(height: 36)
-                                .background(Theme.surface, in: RoundedRectangle(cornerRadius: 10))
+                                .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
 
                                 Spacer()
 
@@ -103,8 +96,8 @@ struct AddRecipeView: View {
                                     Image(systemName: "plus")
                                         .font(.system(size: 15, weight: .bold))
                                         .frame(width: 36, height: 36)
-                                        .background(ingName.isEmpty ? Theme.surface : Theme.primary,
-                                                    in: RoundedRectangle(cornerRadius: 10))
+                                        .background(ingName.isEmpty ? Theme.surface : Theme.accent,
+                                                    in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                                         .foregroundStyle(ingName.isEmpty ? Theme.sublabel : .white)
                                 }
                                 .buttonStyle(.plain)
@@ -112,15 +105,18 @@ struct AddRecipeView: View {
                             }
                         }
 
-                        // Liste der Zutaten
                         ForEach(ingredients) { ing in
                             HStack {
                                 Text(ing.name)
                                     .font(.system(size: 15, design: .rounded))
+                                    .foregroundStyle(Theme.label)
                                 Spacer()
+                                // War Theme.medium (heller Blauton) — gibt's im neuen Theme
+                                // nicht mehr. Sublabel statt Akzentfarbe: das ist eine reine
+                                // Mengenangabe, keine Handlung.
                                 Text("\(ing.quantity) \(ing.unit)")
                                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                    .foregroundStyle(Theme.medium)
+                                    .foregroundStyle(Theme.sublabel)
                                 Button {
                                     ingredients.removeAll { $0.id == ing.id }
                                 } label: {
@@ -131,7 +127,7 @@ struct AddRecipeView: View {
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
-                            .background(Theme.surface, in: RoundedRectangle(cornerRadius: 10))
+                            .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
                         }
                     }
                 }
@@ -147,7 +143,7 @@ struct AddRecipeView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Speichern") { save() }
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(name.isEmpty ? Theme.sublabel : Theme.primary)
+                        .foregroundStyle(name.isEmpty ? Theme.sublabel : Theme.accent)
                         .disabled(name.isEmpty)
                 }
             }

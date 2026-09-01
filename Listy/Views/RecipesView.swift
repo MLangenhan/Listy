@@ -33,7 +33,11 @@ struct RecipesView: View {
                                     .foregroundStyle(.white)
                                     .padding(.horizontal, 10)
                                     .padding(.vertical, 5)
-                                    .background(Theme.dark, in: Capsule())
+                                    // War Theme.dark, gibt's im neuen Theme nicht mehr.
+                                    // Theme.accent statt eines eigenen Extra-Tons — eine
+                                    // Bestätigungsmeldung ist im Kern eine Handlungs-Rückmeldung,
+                                    // passt also zur "Akzent = Handlung"-Regel.
+                                    .background(Theme.accent, in: Capsule())
                                     .padding(.trailing, 12)
                                     .transition(.opacity.combined(with: .scale))
                             }
@@ -51,7 +55,7 @@ struct RecipesView: View {
                     } label: {
                         Image(systemName: "plus")
                             .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(Theme.primary)
+                            .foregroundStyle(Theme.accent)
                     }
                 }
             }

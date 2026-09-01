@@ -13,14 +13,12 @@ struct MarketPickerView: View {
     @ObservedObject var listVM: ShoppingListViewModel
     @Environment(\.dismiss) var dismiss
 
-    @State private var showAddMarket = false
     @State private var newMarketName = ""
     @State private var selectedChain: MarketChain = MarketChain.presets[0]
 
     var body: some View {
         NavigationStack {
             List {
-                // Gespeicherte Märkte
                 if !marketVM.markets.isEmpty {
                     Section {
                         ForEach(marketVM.markets) { market in
@@ -43,7 +41,7 @@ struct MarketPickerView: View {
                                     Spacer()
                                     if sortingVM.profile.selectedMarketID == market.id {
                                         Image(systemName: "checkmark.circle.fill")
-                                            .foregroundStyle(Theme.primary)
+                                            .foregroundStyle(Theme.accent)
                                     }
                                 }
                             }
@@ -57,17 +55,17 @@ struct MarketPickerView: View {
                         }
                     } header: {
                         Text("Meine Märkte")
-                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                            .tracking(0.6)
                     }
                 }
 
-                // Neuen Markt hinzufügen
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
                         TextField("Marktname (z.B. REWE City)", text: $newMarketName)
                             .font(.system(size: 15, design: .rounded))
                             .padding(12)
-                            .background(Theme.surface, in: RoundedRectangle(cornerRadius: 10))
+                            .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
 
                         Picker("Kette", selection: $selectedChain) {
                             ForEach(marketVM.chains) { chain in
@@ -75,7 +73,7 @@ struct MarketPickerView: View {
                             }
                         }
                         .pickerStyle(.menu)
-                        .tint(Theme.primary)
+                        .tint(Theme.accent)
 
                         Button {
                             guard !newMarketName.isEmpty else { return }
@@ -88,8 +86,8 @@ struct MarketPickerView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(
-                                    newMarketName.isEmpty ? Theme.surface : Theme.primary,
-                                    in: RoundedRectangle(cornerRadius: 10)
+                                    newMarketName.isEmpty ? Theme.surface : Theme.accent,
+                                    in: RoundedRectangle(cornerRadius: Theme.cornerRadius)
                                 )
                         }
                         .disabled(newMarketName.isEmpty)
@@ -97,7 +95,8 @@ struct MarketPickerView: View {
                     .padding(.vertical, 6)
                 } header: {
                     Text("Neuer Markt")
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .tracking(0.6)
                 }
             }
             .navigationTitle("Markt wählen")
@@ -105,7 +104,7 @@ struct MarketPickerView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Fertig") { dismiss() }
-                        .foregroundStyle(Theme.primary)
+                        .foregroundStyle(Theme.accent)
                 }
             }
         }

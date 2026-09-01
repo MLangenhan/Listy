@@ -22,6 +22,11 @@ struct ContentView: View {
             RecipesView(recipeVM: recipeVM, listVM: listVM)
                 .tabItem { Label("Rezepte", systemImage: "fork.knife") }
         }
-        .tint(Theme.primary)
+        .tint(Theme.label)
+        .onAppear {
+            sortingVM.onCustomCategoriesChanged = { [weak marketVM] categories, marketID in
+                marketVM?.saveCustomCategories(categories, for: marketID)
+            }
+        }
     }
 }

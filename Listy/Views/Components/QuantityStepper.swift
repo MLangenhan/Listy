@@ -20,13 +20,15 @@ struct QuantityStepper: View {
                 Image(systemName: "minus")
                     .font(.system(size: 12, weight: .semibold))
                     .frame(width: 30, height: 34)
-                    .foregroundStyle(Theme.primary)
+                    // War Theme.background — auf Theme.surface praktisch
+                    // unsichtbar (zu wenig Kontrast, in Dark Mode noch schlimmer).
+                    .foregroundStyle(Theme.sublabel)
             }
             .buttonStyle(.plain)
 
             TextField("", text: $text)
                 .font(.system(size: 13, weight: .semibold, design: .rounded))
-                .foregroundStyle(Theme.medium)
+                .foregroundStyle(Theme.tertiary)
                 .multilineTextAlignment(.center)
                 .keyboardType(.numberPad)
                 .focused($focused)
@@ -55,11 +57,11 @@ struct QuantityStepper: View {
                 Image(systemName: "plus")
                     .font(.system(size: 12, weight: .semibold))
                     .frame(width: 30, height: 34)
-                    .foregroundStyle(Theme.primary)
+                    .foregroundStyle(Theme.sublabel)
             }
             .buttonStyle(.plain)
         }
-        .background(Theme.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous))
     }
 
     private func change(_ delta: Int) {

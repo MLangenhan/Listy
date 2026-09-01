@@ -15,7 +15,7 @@ struct RecipeCard: View {
         HStack(spacing: 12) {
             // Farbblock-Akzent
             RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .fill(Theme.primary)
+                .fill(Theme.accent)
                 .frame(width: 4)
                 .frame(height: 48)
 
@@ -25,16 +25,16 @@ struct RecipeCard: View {
                     .foregroundStyle(Theme.label)
                 Text("\(recipe.ingredients.count) Zutaten · \(recipe.servings) Portion\(recipe.servings == 1 ? "" : "en")")
                     .font(.system(size: 13, design: .rounded))
-                    .foregroundStyle(Theme.sublabel)
+                    .foregroundStyle(Theme.tertiary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Button(action: onAdd) {
                 Image(systemName: "cart.badge.plus")
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(Theme.primary)
+                    .foregroundStyle(Theme.accent)
                     .frame(width: 40, height: 40)
-                    .background(Theme.primary.opacity(0.1), in: Circle())
+                    .background(Theme.accent.opacity(0.1), in: Circle())
             }
             .buttonStyle(.plain)
         }

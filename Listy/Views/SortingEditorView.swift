@@ -18,7 +18,6 @@ struct SortingEditorView: View {
     var body: some View {
         NavigationStack {
             List {
-                // Kategorien (drag & drop)
                 ForEach(sortingVM.profile.categories) { category in
                     let catItems = sortingVM.items(in: category, allItems: listVM.list.items)
                     if !catItems.isEmpty {
@@ -38,7 +37,6 @@ struct SortingEditorView: View {
                     sortingVM.moveCategories(from: source, to: destination)
                 }
 
-                // Unsortierte Items
                 let unsorted = sortingVM.unsortedItems(allItems: listVM.list.items)
                 if !unsorted.isEmpty {
                     Section {
@@ -47,7 +45,8 @@ struct SortingEditorView: View {
                         }
                     } header: {
                         Text("Nicht zugeordnet")
-                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                            .tracking(0.6)
                     }
                 }
             }
@@ -57,7 +56,7 @@ struct SortingEditorView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Fertig") { dismiss() }
-                        .foregroundStyle(Theme.primary)
+                        .foregroundStyle(Theme.accent)
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button {
@@ -65,7 +64,7 @@ struct SortingEditorView: View {
                     } label: {
                         Label("Auto", systemImage: "sparkles")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(Theme.primary)
+                            .foregroundStyle(Theme.accent)
                     }
                 }
             }
@@ -84,13 +83,16 @@ struct SortingEditorView: View {
         }
     }
 
+    // War Icon + Text — jetzt derselbe Farbpunkt-Stil wie in ShoppingListView,
+    // damit dieselbe Kategorie in beiden Screens gleich aussieht.
     private func categoryHeader(_ category: StoreCategory) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: category.icon)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(Theme.primary)
+        HStack(spacing: 8) {
+            Circle()
+                .fill(category.color)
+                .frame(width: 6, height: 6)
             Text(category.name.uppercased())
-                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .tracking(0.6)
                 .foregroundStyle(Theme.sublabel)
         }
     }
@@ -99,8 +101,8 @@ struct SortingEditorView: View {
         HStack {
             Text(item.name)
                 .font(.system(size: 15, design: .rounded))
+                .foregroundStyle(Theme.label)
             Spacer()
-            // Kategorie wechseln
             Menu {
                 ForEach(sortingVM.profile.categories) { cat in
                     Button {
@@ -121,6 +123,7 @@ struct SortingEditorView: View {
         HStack {
             Text(item.name)
                 .font(.system(size: 15, design: .rounded))
+                .foregroundStyle(Theme.label)
             Spacer()
             Menu {
                 ForEach(sortingVM.profile.categories) { cat in
@@ -133,7 +136,7 @@ struct SortingEditorView: View {
             } label: {
                 Text("Zuordnen")
                     .font(.system(size: 13, design: .rounded))
-                    .foregroundStyle(Theme.primary)
+                    .foregroundStyle(Theme.accent)
             }
         }
     }
